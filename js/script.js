@@ -3,7 +3,6 @@ const startInput = document.getElementById('startDate');
 const endInput = document.getElementById('endDate');
 const getImagesButton = document.getElementById('getImagesButton');
 const gallery = document.getElementById('gallery');
-const nasaApiKey = 'DEMO_KEY';
 
 // Call the setupDateInputs function from dateRange.js
 // This sets up the date pickers to:
@@ -31,7 +30,7 @@ async function getSpaceImages() {
   getImagesButton.disabled = true;
   getImagesButton.textContent = 'Loading...';
 
-  const url = `https://api.nasa.gov/planetary/apod?api_key=${nasaApiKey}&start_date=${startDate}&end_date=${endDate}`;
+  const url = `https://science.nasa.gov/wp-json/wp/v2/apod-basic?api_key=DEMO_KEY&start_date=${startDate}&end_date=${endDate}`;
 
   try {
     const response = await fetch(url);
@@ -66,9 +65,24 @@ function displayImages(items) {
     const title = item.title || 'Untitled';
     const date = item.date || '';
     const explanation = item.explanation || 'No description available.';
-    const media = item.media_type === 'image'
-      ? `<img src="${item.url}" alt="${title}" />`
-      : `<a class="media-link" href="${item.url}" target="_blank" rel="noopener noreferrer">View this space media</a>`;
+    let media;
+
+    if (item.media_type === 'image') {
+      const imageUrl = item.hdurl || item.url;
+      media = `
+        <img
+          src="${imageUrl}"
+          alt="${item.alt || title}"
+          onerror="this.onerror=null;this.classList.add('missing-image');"
+        />
+      `;
+    } else {
+      media = `
+        <a class="media-link" href="${item.permalink || item.url}" target="_blank" rel="noopener noreferrer">
+          View this space media
+        </a>
+      `;
+    }
 
     return `
       <article class="gallery-item">
